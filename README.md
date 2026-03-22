@@ -2,7 +2,6 @@
 
 [![Live Demo](https://img.shields.io/badge/Live%20App-Streamlit-FF4B4B?logo=streamlit)](https://laptop-analysis.streamlit.app/)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://python.org)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 > An end-to-end data science project that scrapes real Flipkart laptop listings, performs full EDA, clusters laptops into market segments using unsupervised learning, and predicts price categories using supervised classification — all accessible via a live Streamlit web app.
 
@@ -209,20 +208,31 @@ Tables created:
 | High | ₹60,000 – ₹90,000 |
 | Premium | > ₹90,000 |
 
-**Models Trained:**
+**Models Trained & Results:**
 
-| Model | Notes |
-|---|---|
-| Logistic Regression | Baseline linear model |
-| Decision Tree | max_depth=10 |
-| Random Forest | 100 estimators |
-| SVC | RBF kernel |
-| KNN | k=5 neighbors |
-| XGBoost | mlogloss eval metric |
+| Model | Test Accuracy | CV Accuracy (5-fold) |
+|---|---|---|
+| Logistic Regression | 73.10% | 75.34% |
+| Decision Tree | 73.79% | 77.24% |
+| Random Forest | 80.00% | 82.24% |
+| SVC | 68.97% | 78.10% |
+| KNN | 72.41% | 76.38% |
+| Gradient Boosting | 84.14% | 81.55% |
+| **Gradient Boosting (Tuned)** | **80.69%** | **83.28%** |
 
-**Tuning:** Best model selected and tuned with `GridSearchCV` (3-fold CV).
+> Best params from GridSearchCV: `learning_rate=0.1`, `max_depth=5`, `n_estimators=200`, `min_samples_split=2`
 
-**Evaluation:** Confusion matrix + full classification report (precision, recall, F1) per price category.
+**Classification Report (Tuned Model):**
+
+| Price Category | Precision | Recall | F1-Score |
+|---|---|---|---|
+| Low (< ₹40K) | 0.87 | 0.82 | 0.85 |
+| Medium (₹40K–₹60K) | 0.80 | 0.80 | 0.80 |
+| High (₹60K–₹90K) | 0.75 | 0.82 | 0.78 |
+| Premium (> ₹90K) | 0.83 | 0.77 | 0.80 |
+| **Overall Accuracy** | | | **81%** |
+
+**Evaluation:** Confusion matrix + full classification report (precision, recall, F1) per price category. Goal of >80% accuracy achieved.
 
 **Saved Artifacts:**
 - `best_laptop_price_model.pkl`
@@ -236,14 +246,16 @@ Tables created:
 ```
 laptop-price-segmentation-predictor/
 │
-├── Webscrap_Code.py                          ← Flipkart scraper
-├── EDA_flipkart_laptop_EDA__UnSupervised_.ipynb  ← EDA + Clustering
-├── EDA_flipkart_laptop_supervised_.ipynb     ← Classification models
-├── app.py                                    ← Streamlit web app
-├── requirements.txt                          ← Python dependencies
-├── best_laptop_price_model.pkl               ← Saved best model
-├── scaler.pkl                                ← Feature scaler
-├── target_encoder.pkl                        ← Label encoder
+├── Laptop Market Analysis/
+│   ├── Webscrap_Code.py                           ← Flipkart scraper
+│   ├── EDA_flipkart_laptop_EDA__UnSupervised_.ipynb   ← EDA + Clustering (Steps 1–9)
+│   ├── EDA_flipkart_laptop_supervised_.ipynb      ← Classification models (Step 10)
+│   ├── app.py                                     ← Streamlit web app
+│   ├── best_laptop_price_model.pkl                ← Saved best model
+│   ├── scaler.pkl                                 ← Feature scaler
+│   └── target_encoder.pkl                         ← Label encoder
+│
+├── requirements.txt                               ← Python dependencies
 └── README.md
 ```
 
@@ -295,21 +307,42 @@ scipy
 
 ---
 
+## Dataset
+
+- **Source:** Flipkart laptop listings (scraped live)
+- **Pages scraped:** 44 pages
+- **Raw records:** ~1,100 laptops
+- **After cleaning:** ~980 laptops (duplicates and missing Brand/Price removed)
+- **Features:** 17 columns including Title, Brand, CPU, GPU, RAM, Storage, Display, Weight, OS, Price, Original Price, Discount %, Rating, Review Count
+
+---
+
+## App Screenshots
+
+**Input Panel — Configure laptop specs and trigger prediction**
+![App Input](screenshot1.png)
+
+**Output Panel — Suggested market segment with detailed analysis**
+![App Output](screenshot2.png)
+
+---
+
 ## Live Demo
 
 **[https://laptop-analysis.streamlit.app/](https://laptop-analysis.streamlit.app/)**
-
-Enter laptop specs (RAM, storage, brand, CPU type) and get an instant price category prediction — Low, Medium, High, or Premium.
 
 ---
 
 ## Key Insights
 
 - Budget segment (< ₹40K) dominates Flipkart listings — most laptops are price-sensitive
-- Higher price does not correlate strongly with rating — customer satisfaction is fairly uniform
-- Premium brands (Apple, MSI, Razer) clearly differentiate on RAM and display quality
-- Random Forest / XGBoost consistently outperformed linear models for price classification
+- Higher price does not correlate strongly with rating — customer satisfaction is relatively uniform
+- Premium brands (Apple, MSI) clearly differentiate on RAM and display quality
+- Gradient Boosting outperformed all models with **84.14% test accuracy** before tuning
+- After GridSearchCV tuning, the model achieves **81% overall accuracy** with strong F1 scores across all 4 price categories
+- Low-priced laptops are the easiest to classify (F1: 0.85); High-priced (₹60K–₹90K) is the hardest (F1: 0.78)
 - Clustering reveals distinct market tiers that align closely with manual price category boundaries
+- Dataset: 984 raw records → 725 used for ML after feature engineering and null removal
 
 ---
 
